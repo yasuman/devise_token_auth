@@ -11,15 +11,7 @@ module DeviseTokenAuth
     end
 
     def create
-      # Check
-      field = (resource_params.keys.map(&:to_sym) & resource_class.authentication_keys).first
-
-      @resource = nil
-      if field
-        q_value = get_case_insensitive_field_from_resource_params(field)
-
-        @resource = find_resource(field, q_value)
-      end
+      @resource = get_resource_by_params
 
       if @resource && valid_params?(field, q_value) && (!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
         valid_password = @resource.valid_password?(resource_params[:password])
@@ -88,6 +80,15 @@ module DeviseTokenAuth
       end
 
       { key: auth_key, val: auth_val }
+    end
+
+    def get_resource_by_params
+      # Check
+      field = (resource_params.keys.map(&:to_sym) & resource_class.authentication_keys).first
+      return nil unless field
+
+      q_value = get_case_insensitive_field_from_resource_params(field)
+      find_resource(field, q_value)
     end
 
     def render_new_error
